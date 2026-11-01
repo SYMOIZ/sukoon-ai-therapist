@@ -64,8 +64,45 @@ def fetch_rest_embedding(text: str) -> list:
     except Exception:
          return [0.0] * 1536
 
+def _gemini_generate(api_key: str, req: dict) -> str:
+    # Same call the Node gateway (server.ts) makes, over REST so the Python function needs no SDK
+    model = (req.get("model") or os.environ.get("GEMINI_MODEL") or "gemini-2.5-flash").replace("1.5", "2.5")
+    config = req.get("config") or {}
+    contents = []
+    for c in req.get("contents") or []:
+        parts = [{"text": p["text"]} for p in c.get("parts", []) if isinstance(p, dict) and p.get("text")]
+        if parts:
+            contents.append({"role": "user" if c.get("role") == "user" else "model", "parts": parts})
+    body = {"contents": contents}
+    sys_instruct = config.get("systemInstruction")
+    if sys_instruct:
+        body["systemInstruction"] = sys_instruct if isinstance(sys_instruct, dict) else {"parts": [{"text": str(sys_instruct)}]}
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    req_obj = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"), method="POST",
+                                     headers={"Content-Type": "application/json", "x-goog-api-key": api_key})
+    with urllib.request.urlopen(req_obj, timeout=60) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    parts = (data.get("candidates") or [{}])[0].get("content", {}).get("parts", [])
+    return "".join(p.get("text", "") for p in parts) or "I am listening. Please proceed."
+
 @router.post("/generate")
 async def generate_content(req: dict):
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if gemini_key:
+        for attempt in range(3):
+            try:
+                return {"text": await asyncio.to_thread(_gemini_generate, gemini_key, req), "error": None}
+            except urllib.error.HTTPError as e:
+                print(f"[Gemini] attempt {attempt + 1} failed: {e.code} {e.read()[:300]!r}", flush=True)
+                if e.code in (429, 503) and attempt < 2:
+                    await asyncio.sleep(2 ** attempt * 2)
+                    continue
+                break
+            except Exception as e:
+                print(f"[Gemini] attempt {attempt + 1} failed: {e}", flush=True)
+                break
+        return {"text": "I'm having a moment of connection trouble, but I'm here. Please try again.", "error": None}
+
     api_key = get_openai_api_key()
     if not api_key:
         return {"text": "System Configuration: OPENAI_API_KEY environment variable is not defined.", "error": "Missing key"}

@@ -27,6 +27,9 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres"):
     # Normalize legacy postgres:// connection schemes in SQLAlchemy
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    # SQLAlchemy 2.1 defaults postgresql:// to psycopg 3; pin the psycopg2 driver this app installs
+    if DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
     
     # Ensure psycopg2 driver is installed
     try:
