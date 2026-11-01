@@ -1,243 +1,191 @@
 <!-- Sukoon -->
-# Sukoon AI Therapist Companion
+<div align="center">
 
-Sukoon is a mental-wellness web application. People can talk with an AI companion, track mood in a journal, find a therapist, and manage appointments. Therapists get a practice workspace. Administrators review users, therapist applications, and support tickets.
+# Sukoon — your AI wellness companion
 
-**Live site:** [https://www.sukoon.tech](https://www.sukoon.tech)
+**Sukoon** (سکون) means *peace of mind*. It's a calm, private place to talk things through, any time of day.
 
-The public HTTPS site was opened in a browser on 2 October 2026. The homepage, login, and Client, Therapist, and Admin demo flows loaded from that host. The apex name `sukoon.tech` is not a reliable entry point yet. See [Limitations](#limitations-and-future-work).
+[**Try it on Vercel**](https://sukoon-blue.vercel.app) · [**Try it on AWS**](https://www.sukoon.tech) · [How it works](#how-it-works) · [Run it locally](#run-it-locally)
 
-Author: **Syed Moiz** (GitHub: [SYMOIZ](https://github.com/SYMOIZ)). This is not a clinical service and does not replace a licensed therapist.
+![Sukoon landing page](docs/screenshots/00-hero.png)
 
-## Documentation
+</div>
+
+> Sukoon is a wellness companion, not a clinical service. It does not diagnose and it does not replace a licensed therapist. If you are in crisis, please contact local emergency services. The chat screen has an **Emergency** button for that reason.
+
+---
+
+## Why we built Sukoon
+
+Stress, anxiety and low mood don't keep office hours. At 2 a.m. there is usually no one to call, and booking a first appointment with a professional can feel like a big step.
+
+We wanted a space that:
+
+- **Listens right away.** Open the app and start typing. The AI companion answers in seconds, kindly and without judgement.
+- **Helps you notice patterns.** A mood journal shows how your week really went.
+- **Makes the next step easy.** When you're ready for a human, you can browse therapists and request a session in the same app.
+- **Gives therapists and operators real tools,** so the people behind the platform can run it properly.
+
+So Sukoon has three sides: one for **clients**, one for **therapists**, and one for **admins**.
+
+---
+
+## Try it in 30 seconds
+
+1. Open **[sukoon-blue.vercel.app](https://sukoon-blue.vercel.app)** (or [www.sukoon.tech](https://www.sukoon.tech)).
+2. Click **Log In**.
+3. Under **Quick Demo Access**, choose **Client Demo**, **Therapist Demo** or **Admin Demo**. No password is needed.
+4. As the client, open **Chat** and say hi.
+
+![Live AI chat answered by Gemini](docs/screenshots/24-live-ai-chat-gemini.jpg)
+
+*A real conversation on the live site, answered by Google Gemini.*
+
+Client Demo is a sandbox. Chat and journal entries stay in your browser session, and actions that would create a permanent record (such as booking) ask you to sign up. Admin screens need a desktop-width window.
+
+---
+
+## What you can do
+
+### As a client
+
+| | |
+|---|---|
+| ![Client dashboard](docs/screenshots/03-client-dashboard.png) **Dashboard** — one place to chat, track your mood or find a therapist. | ![AI chat](docs/screenshots/04-client-ai-chat.png) **AI chat** — talk any time, day or night. |
+| ![Mood journal](docs/screenshots/07-client-journal.png) **Mood journal** — log how you feel and look back over time. | ![Therapist directory](docs/screenshots/05-client-therapists.png) **Find a therapist** — browse profiles and specialties. |
+| ![Notifications](docs/screenshots/16-notifications.png) **Notifications** — updates in one feed. | ![Settings](docs/screenshots/17-profile-settings.png) **Settings** — your profile and preferences. |
+
+### As a therapist
+
+| | |
+|---|---|
+| ![Therapist practice overview](docs/screenshots/08-therapist-dashboard.png) **Practice overview** — your practice at a glance. | ![Therapist calendar](docs/screenshots/11-therapist-appointments.png) **Calendar** — weekly schedule and session requests. |
+| ![Patient registry](docs/screenshots/10-therapist-client-management.png) **Patient registry** — the clients you work with. | ![Therapist settings](docs/screenshots/09-therapist-profile.png) **Profile and settings** — how clients see you. |
+
+### As an admin
+
+| | |
+|---|---|
+| ![Admin analytics](docs/screenshots/12-admin-dashboard.png) **Analytics** — platform activity at a glance. | ![User management](docs/screenshots/13-admin-user-management.png) **User management** — search and manage accounts. |
+| ![Therapist review](docs/screenshots/14-admin-therapist-review.png) **Therapist applications** — approve or reject new therapists. | ![Support tickets](docs/screenshots/15-admin-support-management.png) **Support desk** — answer tickets from users. |
+
+### On your phone
+
+<img src="docs/screenshots/18-responsive-mobile.png" alt="Sukoon on a phone-sized screen" width="320" />
+
+The client app works on small screens. Admin tools are desktop-only on purpose.
+
+---
+
+## How it works
+
+Sukoon runs in two places from the same code: **Vercel** (serverless) and **AWS** (a single EC2 server).
+
+```text
+                       ┌──────────────── Vercel ─────────────────┐
+Browser ──HTTPS──▶     │ React app (static, Vite build)          │
+                       │ /api/*  → Python function (FastAPI)     │──▶ Neon Postgres
+                       │           /api/engine/generate → Gemini │
+                       └─────────────────────────────────────────┘
+
+                       ┌──────────── AWS EC2 (t3.micro) ─────────┐
+Browser ──HTTPS──▶     │ nginx (TLS) → Node gateway :3000        │
+ www.sukoon.tech       │   /api/engine/* → Gemini                │
+                       │   other /api/*  → FastAPI :3001         │──▶ Postgres 16 (Docker, localhost only)
+                       └─────────────────────────────────────────┘
+```
+
+- **Frontend:** React 19, TypeScript, Vite. The `supabase` client in `src/services` is a small local shim that calls this app's own `/api/db` and `/api/auth` endpoints.
+- **API:** FastAPI and SQLAlchemy (`main.py`, `backend/`). It owns accounts, the journal, bookings, therapist tools and admin actions.
+- **AI:** Google Gemini (`gemini-2.5-flash`) through `GEMINI_API_KEY`. If that isn't set, the API falls back to OpenAI (`OPENAI_API_KEY`).
+- **Sign-in:** email and password with a signed bearer token, plus Continue with Google (Firebase Auth).
+- **Database:** PostgreSQL. Neon on Vercel; Postgres 16 in Docker on EC2.
+
+More detail: [architecture](docs/architecture/README_ARCHITECTURE.md) · [backend and database](docs/architecture/README_BACKEND.md) · [AWS deployment](docs/deployment/deployment.md) · [AWS services](docs/deployment/aws-services.md)
+
+---
+
+## Run it locally
+
+You need Node.js, Python 3 and Docker.
+
+```bash
+npm install
+pip install fastapi uvicorn sqlalchemy psycopg2-binary pydantic email-validator
+docker compose up -d
+```
+
+Create a `.env` file (it is gitignored):
+
+```text
+DATABASE_URL=postgresql://sukoon:sukoon@localhost:5432/sukoon
+GEMINI_API_KEY=your-gemini-key
+```
+
+Google sign-in also needs the `VITE_FIREBASE_*` values listed under [Deploy](#deploy). Everything else works without them.
+
+Then start the app:
+
+```bash
+npm run dev
+```
+
+This starts the Node gateway on http://localhost:3000 and FastAPI on port 3001. Tables and demo data are created on first start.
+
+## Deploy
+
+**Vercel.** `vercel.json` builds the Vite app and serves `/api/*` from `api/index.py`. Set these environment variables on the project:
+
+| Variable | What it's for |
+|---|---|
+| `DATABASE_URL` | Postgres connection (added automatically by the Neon integration) |
+| `GEMINI_API_KEY` | AI chat |
+| `VITE_FIREBASE_API_KEY`, `_AUTH_DOMAIN`, `_PROJECT_ID`, `_STORAGE_BUCKET`, `_MESSAGING_SENDER_ID`, `_APP_ID`, `_MEASUREMENT_ID` | Google sign-in |
+
+**AWS.** One `t3.micro` with nginx and Let's Encrypt, the app running as `sukoon.service`, and Postgres in Docker bound to localhost. The Gemini key lives in SSM Parameter Store (`/sukoon/gemini-api-key`), not in git. Only ports 80 and 443 are open. See [docs/deployment](docs/deployment/).
+
+Rough AWS cost if left running: about $13 a month (instance, public IPv4, 20 GiB disk). This is an estimate, not a bill.
+
+---
+
+## Security and privacy
+
+- No secrets in git. Keys come from Vercel environment variables or AWS SSM.
+- On AWS the database is never exposed to the internet, and there is no SSH. Server access goes through AWS Systems Manager.
+- Demo logins never show passwords. The Client Demo account can't be deleted or upgraded.
+
+## Project docs
 
 | Topic | Where |
 |---|---|
-| Setup, features, and how to run the app | This README, [Setup](#setup) |
 | Architecture | [docs/architecture/README_ARCHITECTURE.md](docs/architecture/README_ARCHITECTURE.md) |
 | Backend and database | [docs/architecture/README_BACKEND.md](docs/architecture/README_BACKEND.md) |
-| Deployment and AWS | [docs/deployment/deployment.md](docs/deployment/deployment.md), [docs/deployment/aws-services.md](docs/deployment/aws-services.md) |
-| Earlier unused AWS account | [docs/deployment/aws-deployment-inventory.md](docs/deployment/aws-deployment-inventory.md) |
-| Hackathon proof and screenshots | [docs/proof/README.md](docs/proof/README.md) |
-| App screenshots | [docs/screenshots/](docs/screenshots/) |
+| Deployment and AWS | [docs/deployment/](docs/deployment/) |
+| Hackathon proof | [docs/proof/README.md](docs/proof/README.md) |
+| All screenshots | [docs/screenshots/](docs/screenshots/) |
 
-## Problem and solution
+---
 
-Stress, anxiety, and low mood do not keep office hours, and a first conversation with a professional can be hard to start. Sukoon gives a private web space for an immediate AI check-in, a mood journal, and a directory of practitioner profiles, with separate tools for the therapist and for an operator who reviews the network.
+## 🤝 Let's connect
 
-## Features
+Built by **Syed Moiz** ([GitHub: SYMOIZ](https://github.com/SYMOIZ)).
 
-- Public landing page with product navigation
-- Email and password login, Continue with Google, and Quick Demo Access
-- Client home with chat, mood tracking, and therapist discovery
-- AI therapist chat (Gemini, with an OpenAI fallback on the server when Gemini is unset)
-- Therapist directory and a client bookings list
-- Mood journal
-- In-app notifications and account settings
-- Therapist practice overview, patient registry, and weekly calendar
-- Admin analytics, user management, therapist application review, and support tickets
-
-## Client, Therapist, and Admin flows
-
-Sign in from **Log In**. **Quick Demo Access** opens a real session for each role. No password is published here. The demo buttons call `POST /api/auth/demo-login`.
-
-| Role | What you can open | Demo identity shown in the app |
-|---|---|---|
-| Client | Dashboard, AI chat, journal, therapist directory, notifications, settings | Demo Account, `demo.client@sukoon.ai` |
-| Therapist | Practice overview, calendar, patient registry, settings | Dr. Sarah Connor, `counselor@sukoon.ai` |
-| Admin | Analytics, user base, therapist network, support tickets | Admin session from Admin Demo |
-
-Client Demo is a separate account type. Chat and journal for that account stay in the browser session. Booking, Help Desk, and other actions that would create a permanent record send the visitor to sign-up instead. A normal client, therapist, or admin account is not under those demo rules.
-
-On the live site, Client Demo booking opened the sign-up screen with the message that the Client Demo account cannot be upgraded. The appointment scheduler itself was not captured. See the screenshot notes below.
-
-## AI functionality
-
-Chat is labeled AI Assistant. A live Client Demo session on 2 October 2026 sent “Hello” and received replies from the assistant in the chat panel. The browser calls the Node gateway, which calls Gemini (`gemini-2.5-flash` in the current client). The gateway reads `GEMINI_API_KEY` and falls back to `OPENAI_API_KEY` when Gemini is unset. The production host has the Gemini parameter configured. An OpenAI key was not set on that host during deployment.
-
-The assistant is a wellness companion. It is not a diagnosis or a crisis service. The chat screen includes an emergency control for that reason.
-
-## Architecture
-
-```text
-Browser
-  -> HTTPS (nginx + certificate on the EC2 host)
-  -> Node gateway, port 3000
-       /api/engine/*  handled by Node (AI)
-       other /api/*   proxied to FastAPI
-  -> FastAPI, port 3001
-  -> PostgreSQL 16 in Docker, bound to 127.0.0.1:5432
-```
-
-The React UI is built with Vite and served by the Node process when `NODE_ENV=production`. FastAPI owns accounts, journal, bookings, admin actions, and the PostgreSQL models. systemd unit `sukoon.service` starts the Node process and restarts it on failure. The database container uses a restart policy so it comes back after a reboot.
-
-## Tech stack
-
-- React 19, TypeScript, Vite 5, Tailwind-style utility classes
-- Node gateway: Express 5, `tsx`, `server.ts`
-- API: FastAPI, SQLAlchemy, Pydantic, psycopg2
-- Database: PostgreSQL 16
-- AI: Google Gemini (`@google/genai`), optional OpenAI fallback
-- Google sign-in: Firebase Auth popup, then the app API
-- Migrations: Alembic revision `73ebc74ae218`
-
-The frontend `supabase` client in this repo is a local shim that posts to `/api/db` and `/api/auth`. Supabase is not the production database.
-
-## AWS architecture
-
-Current production account: `159412676011`, region `us-east-1`. Deployed 2 October 2026 with the AWS CLI. No RDS, NAT gateway, or load balancer.
-
-| Resource | Identifier | Role |
-|---|---|---|
-| EC2 | `i-01a7d38c28e94d81d`, name `sukoon-hackathon`, `t3.micro` | App, nginx, and private Postgres |
-| Elastic IP | `44.218.253.204` | Public address for `www` |
-| Security group | `sg-0beb2bd2ced3d1ec4` (`sukoon-web`) | Inbound TCP 80 and 443 only |
-| Volume | `vol-07350a72c6a46361c`, 20 GiB gp3 | Root disk |
-| S3 | `sukoon-deploy-159412676011` | Private deploy bundle |
-| SSM | `/sukoon/gemini-api-key` (SecureString) | Gemini key, not stored in git |
-| IAM | role `sukoon-ec2-role`, instance profile `sukoon-ec2-profile` | SSM agent and read access to the deploy bucket and `/sukoon/*` |
-
-nginx terminates TLS and proxies to `127.0.0.1:3000`. Certificate SANs are `sukoon.tech` and `www.sukoon.tech`. PostgreSQL is published only on the instance loopback. Port 5432 is not in the security group.
-
-An earlier deploy on account `591292939267` was inventoried and was not deleted. It is not the live site. See [docs/deployment/aws-deployment-inventory.md](docs/deployment/aws-deployment-inventory.md).
-
-Rough run cost if left on: about $13 per month (t3.micro, one public IPv4, 20 GiB gp3), less if the EC2 free tier still applies. This is an estimate, not a bill.
-
-## Database
-
-PostgreSQL 16 runs in Docker on the EC2 host, database name `sukoon`, listening on `127.0.0.1:5432`. The password and `DATABASE_URL` live in `/opt/sukoon/.env` (mode 600) on the host. They are not in git.
-
-Alembic revision `73ebc74ae218` is the initial schema. The API creates tables on startup and seeds demo content when the journal table is empty. During the 2 October deploy, a non-demo signup and a journal row were written and read back on this host. That check is recorded in the deployment notes. A screenshot of the database was not taken.
-
-## Authentication and security
-
-- Email and password sessions use an HMAC bearer token stored in the browser (`sukoon_auth_token`).
-- Quick Demo Access does not return passwords.
-- Continue with Google uses the Firebase project `sukoon-e8df7`, then `POST /api/auth/login_google` or `signup_google`. Amazon Cognito was not added.
-- Client Demo cannot delete its account. The API rejects that delete. Normal accounts keep their own persistence.
-- The security group does not allow SSH or Postgres from the internet. Host access used for deployment was AWS Systems Manager.
-- Secrets are environment variables and SSM. They are not printed in this document.
-- Admin screens are blocked below the desktop breakpoint (“Desktop Access Only”).
-
-Google sign-in on `www.sukoon.tech` still depends on that domain being allowed in the Firebase project. That click was not completed in this capture pass.
-
-## Demo access
-
-1. Open [https://www.sukoon.tech](https://www.sukoon.tech).
-2. Choose **Log In**.
-3. Under **Quick Demo Access**, choose **Client Demo**, **Therapist Demo**, or **Admin Demo**.
-
-Use a wide window for Admin. The admin UI refuses a narrow viewport.
-
-## Setup
-
-Local development uses the same app. It does not change the live host.
-
-1. Install Node.js, Python 3, and Docker.
-2. Copy environment values into a gitignored `.env`: `DATABASE_URL` and `GEMINI_API_KEY`. Do not commit that file.
-3. Start PostgreSQL with `docker-compose.yml` (local compose publishes port 5432 on the machine; production does not).
-4. Apply the existing Alembic revision if the database is empty.
-5. `npm install`
-6. `npm run dev` starts the Node gateway and the FastAPI process.
-
-`npm run build` produces `dist/`. `npm start` with `NODE_ENV=production` serves that build.
-
-## Deployment
-
-Production is already running. Do not treat this section as a request to redeploy.
-
-The host was created with the AWS CLI: one `t3.micro`, the security group above, a private S3 bundle (`sukoon-app.tar.gz`, install script), and an SSM parameter for the Gemini key. User data installed Node, Python packages, Docker Postgres, and `sukoon.service`. HTTPS was added later with nginx and Certbot after DNS for `www` pointed at the Elastic IP. Port 80 redirect-to-app was removed so nginx could own 80 and 443.
-
-DNS is at the domain registrar, not in Route 53. `www.sukoon.tech` is an A record to `44.218.253.204`. The apex still includes Google A records, so `https://sukoon.tech` is not reliable until those records are removed.
-
-Step-by-step notes and the earlier account inventory are in [docs/deployment/](docs/deployment/).
-
-## Screenshots
-
-Captured in the browser from [https://www.sukoon.tech](https://www.sukoon.tech) on 2 October 2026. Personal emails and the admin risk-flag text were blurred. The booking scheduler was not captured.
-
-![Landing page](docs/screenshots/19-live-aws-proof.png)
-
-![Login and Quick Demo Access](docs/screenshots/02-login-page.png)
-
-![Client dashboard](docs/screenshots/03-client-dashboard.png)
-
-![Client AI chat](docs/screenshots/04-client-ai-chat.png)
-
-![Therapist directory](docs/screenshots/05-client-therapists.png)
-
-Client booking (`06-client-booking.png`): **PENDING**. Client Demo sends booking to sign-up. A real booking was not created on the production database for this document.
-
-![Mood journal](docs/screenshots/07-client-journal.png)
-
-![Therapist practice](docs/screenshots/08-therapist-dashboard.png)
-
-![Therapist settings](docs/screenshots/09-therapist-profile.png)
-
-![Therapist patient registry](docs/screenshots/10-therapist-client-management.png)
-
-![Therapist calendar](docs/screenshots/11-therapist-appointments.png)
-
-![Admin dashboard](docs/screenshots/12-admin-dashboard.png)
-
-![Admin user management](docs/screenshots/13-admin-user-management.png)
-
-![Therapist application review](docs/screenshots/14-admin-therapist-review.png)
-
-![Admin support tickets](docs/screenshots/15-admin-support-management.png)
-
-![Notifications](docs/screenshots/16-notifications.png)
-
-![Account settings](docs/screenshots/17-profile-settings.png)
-
-
-Hackathon proof images, including the ones that are still pending, are listed in [docs/proof/README.md](docs/proof/README.md).
-
-## Testing and QA
-
-Checked on the live site on 2 October 2026:
-
-- Homepage hero and navigation
-- Login with Google, email fields, and Client, Therapist, and Admin demo buttons
-- Client Demo dashboard, a real AI chat exchange, journal composer, therapist cards, empty notifications, and settings for Demo Account
-- Client Demo booking path, which leaves the app for sign-up
-- Therapist Demo overview, settings, empty patient registry, and weekly calendar with session requests
-- Admin Demo analytics, user table, pending therapist review with Reject and Approve & Onboard, and the support ticket list
-- Landing page with a narrow viewport (hamburger navigation and stacked sections)
-- Admin viewport guard on a phone-sized width
-
-## 🤝 Let's Connect
-
-Building infrastructure, automating deployments, or solving a cloud problem?
-Feel free to connect.
-
-**LinkedIn:** [Syed Moiz](https://www.linkedin.com/in/symoiz/)
-**Email:** `symoiz.dev@gmail.com`
+**LinkedIn:** [Syed Moiz](https://www.linkedin.com/in/symoiz/) · **Email:** `symoiz.dev@gmail.com`
 
 ## 📜 License
 
-**Proprietary Software — All Rights Reserved**
+**Proprietary software — all rights reserved.** © 2026 Syed Moiz.
 
-© 2026 Syed Moiz. All rights reserved.
+The repository is shared for viewing and reference only. You may not copy, reproduce, modify, redistribute, use commercially, or create derivative works without prior written permission.
 
-This project and its source code are the sole property of **Syed Moiz**.
+### 🏆 Hackathon exception
 
-The repository is provided for viewing and reference purposes only. No permission is granted to copy, reproduce, modify, redistribute, commercially use, or create derivative works from this project without prior written permission.
-
-### 🏆 Hackathon Exception
-
-For **hackathon submission and evaluation purposes only**, hackathon organizers, judges, reviewers, and authorized participants are permitted to:
+For **hackathon submission and evaluation only**, organizers, judges, reviewers and authorized participants may:
 
 * View and review the source code
 * Clone or download the repository for evaluation
 * Run and test the project
-* Modify configuration or code temporarily when required for testing
-* Use the project solely for judging, demonstration, and technical evaluation
+* Temporarily change configuration or code when needed for testing
+* Use the project only for judging, demonstration and technical evaluation
 
-This exception **does not grant ownership, commercial rights, redistribution rights, or permission to reuse the project outside the hackathon evaluation process**.
-
-All intellectual property and ownership rights remain with **Syed Moiz**.
-
-**Unauthorized copying, redistribution, commercial use, or reuse outside the permitted hackathon purpose is prohibited.**
-
-The same text is in [LICENSE](LICENSE).
+This exception **does not grant ownership, commercial rights, redistribution rights, or permission to reuse the project outside the hackathon evaluation**. All intellectual property remains with **Syed Moiz**.
