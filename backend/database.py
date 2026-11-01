@@ -13,7 +13,7 @@ if os.path.exists(env_path):
                 continue
             if "=" in line:
                 key, val = line.split("=", 1)
-                os.enniron[key.strip()] = val.strip()
+                os.environ[key.strip()] = val.strip()
 #updated
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base

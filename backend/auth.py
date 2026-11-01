@@ -15,7 +15,7 @@ def generate_token(user_id: str) -> str:
     payload = {"user_id": user_id, "exp": time.time() + 30 * 24 * 3600}
     payload_b64 = base64.b64encode(json.dumps(payload).encode()).decode()
     sig = hmac.new(SECRET_KEY, payload_b64.encode(), hashlib.sha256).hexdigest()
-    return f"{payload_b64};.{sig}"
+    return f"{payload_b64}.{sig}"
 
 def verify_token(token: str) -> str:
     try:
