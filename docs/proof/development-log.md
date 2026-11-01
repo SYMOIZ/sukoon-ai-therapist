@@ -1,3 +1,4 @@
+<!-- Sukoon -->
 # Development log
 
 **Hackathon alignment date:** 2 October 2026  

@@ -1,3 +1,4 @@
+<!-- Sukoon -->
 # Architecture
 
 Updated 2 October 2026. Production details and the live host are in the root [README](../../README.md) and [deployment notes](../deployment/deployment.md).

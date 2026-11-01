@@ -1,3 +1,4 @@
+// Sukoon
 
 import { Memory, Session, JournalEntry, UserSettings, Badge } from '../types';
 import { updateUserProfile } from './authService';

@@ -1,3 +1,4 @@
+# Sukoon
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from .database import Base

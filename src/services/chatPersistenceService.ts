@@ -1,3 +1,4 @@
+// Sukoon
 import { supabase } from './supabaseClient';
 import { aiMemoryService } from './aiMemoryService'; // Reusing your existing AI service for embeddings
 import { Message, MessageRole, Session } from '../types';

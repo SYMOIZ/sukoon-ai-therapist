@@ -1,3 +1,4 @@
+// Sukoon
 export type Language = 'English' | 'Urdu' | 'Roman Urdu' | 'Sindhi' | 'Pashto' | 'Siraiki' | 'Arabic' | 'Spanish';
 export type TonePreference = 'Cute' | 'Mature' | 'Friendly' | 'Soft' | 'Calm' | 'Direct';
 export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';

@@ -1,3 +1,4 @@
+<!-- Sukoon -->
 # Sukoon AI Therapist Companion
 
 Sukoon is a mental-wellness web application. People can talk with an AI companion, track mood in a journal, find a therapist, and manage appointments. Therapists get a practice workspace. Administrators review users, therapist applications, and support tickets.

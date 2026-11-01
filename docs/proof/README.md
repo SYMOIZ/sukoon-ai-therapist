@@ -1,3 +1,4 @@
+<!-- Sukoon -->
 # Sukoon — Hackathon proof
 
 Proof pack for the live Sukoon deployment. Statements below are limited to what was done in this project and checked on 2 October 2026. Missing images are marked **PENDING** and are not linked.

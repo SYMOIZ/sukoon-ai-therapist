@@ -1,3 +1,4 @@
+// Sukoon
 // This is a base64 representation of the "Sukoon" logo, processed to be white text on a transparent background.
 // It can be used in an <img> tag src attribute.
 // The color can be inverted using CSS filter: invert(1) to make it appear black on light backgrounds.

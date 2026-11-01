@@ -1,3 +1,4 @@
+// Sukoon
 
 import { UserSettings, Badge, Gender, Profession, TonePreference, Language, TherapistApplication } from '../types';
 import { supabase } from './supabaseClient';

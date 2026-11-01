@@ -1,3 +1,4 @@
+// Sukoon
 import { JournalEntry, Message } from '../types';
 
 export const CLIENT_DEMO_USER_ID = 'client-demo-001';

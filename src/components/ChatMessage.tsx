@@ -1,3 +1,4 @@
+// Sukoon
 import React, { useRef, useEffect, useState } from 'react';
 import { Message, MessageRole } from '../types';
 

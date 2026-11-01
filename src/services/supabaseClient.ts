@@ -1,3 +1,4 @@
+// Sukoon
 /// <reference types="vite/client" />
 
 class SupabaseQueryBuilder implements PromiseLike<any> {
